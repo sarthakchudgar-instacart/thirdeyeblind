@@ -330,3 +330,31 @@ SELECT
     ROUND((SUM(gtv_91d_post) - SUM(gtv_91d_pre)) / NULLIF(SUM(gtv_91d_pre), 0) * 100, 2) AS gtv_91d_pct_change
 FROM sandbox_db.sarthakchudgar.thirdeyeblind_control_gtv_analysis;
 
+
+-- ============================================================
+-- STEP 6: Activation Analysis
+-- Users with NO pre-event activity (91-day window: Jun 5 - Sep 3, 2025)
+-- who placed orders AFTER the event
+-- ============================================================
+
+-- 6a. Overall activation summary
+SELECT 
+    COUNT(*) AS total_no_pre_activity,
+    COUNT(CASE WHEN orders_91d_post > 0 THEN 1 END) AS activated_post_event,
+    ROUND(COUNT(CASE WHEN orders_91d_post > 0 THEN 1 END) * 100.0 / COUNT(*), 1) AS activation_rate_pct,
+    ROUND(SUM(gtv_91d_post), 2) AS total_gtv_from_activated,
+    ROUND(AVG(CASE WHEN orders_91d_post > 0 THEN gtv_91d_post END), 2) AS avg_gtv_per_activated,
+    SUM(orders_91d_post) AS total_orders_from_activated
+FROM sandbox_db.sarthakchudgar.thirdeyeblind_gtv_analysis
+WHERE gtv_91d_pre = 0;
+
+-- 6b. Breakdown by time window (28-day vs 91-day)
+SELECT 
+    COUNT(*) AS total_inactive_pre,
+    COUNT(CASE WHEN orders_28d_post > 0 THEN 1 END) AS activated_28d_post,
+    COUNT(CASE WHEN orders_91d_post > 0 THEN 1 END) AS activated_91d_post,
+    ROUND(SUM(gtv_28d_post), 2) AS gtv_28d_post,
+    ROUND(SUM(gtv_91d_post), 2) AS gtv_91d_post
+FROM sandbox_db.sarthakchudgar.thirdeyeblind_gtv_analysis
+WHERE gtv_91d_pre = 0;
+
